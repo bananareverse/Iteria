@@ -1,21 +1,15 @@
 <div align="center">
 
-# 🚀 ITERIA
+# ITERIA
 
 ### Gestor de Proyectos con Metodología Ágil
 
-*Transforma la forma en que gestionas tus proyectos*
-
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bananareverse/Iteria.git)
-[![Jira](https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white)](https://aldovvr05.atlassian.net/jira/software/projects/KAN/boards/1)
-![Status](https://img.shields.io/badge/status-en%20desarrollo-yellow?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
 </div>
 
 ---
 
-## 💡 ¿Qué es Iteria?
+## ¿Qué es Iteria?
 
 Plataforma web innovadora de gestión de proyectos basada en **metodologías ágiles**, diseñada específicamente para dos públicos:
 
@@ -23,7 +17,7 @@ Plataforma web innovadora de gestión de proyectos basada en **metodologías ág
 <tr>
 <td width="50%">
 
-### 🎓 Versión Estudiantes
+### Versión Estudiantes
 ```
 ✓ Interfaz minimalista
 ✓ Aprendizaje guiado
@@ -34,7 +28,7 @@ Plataforma web innovadora de gestión de proyectos basada en **metodologías ág
 </td>
 <td width="50%">
 
-### 💼 Versión Empresas
+### Versión Empresas
 ```
 ✓ Sistema avanzado de roles
 ✓ Reportes y métricas
@@ -48,21 +42,9 @@ Plataforma web innovadora de gestión de proyectos basada en **metodologías ág
 
 ---
 
-## ⚡ Features
-
-<div align="center">
-
-| 🎯 Gestión de Proyectos | 📋 Tareas Inteligentes | 👥 Colaboración |
-|:---:|:---:|:---:|
-| Crea y administra múltiples proyectos | Asignación, prioridades y estados | Invitaciones con roles definidos |
-| **🎨 Tablero Kanban** | **💬 Comentarios** | **📊 Historial** |
-| Visualización del flujo de trabajo | Comunicación en tiempo real | Registro de actividad completo |
-
-</div>
-
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -90,39 +72,9 @@ Plataforma web innovadora de gestión de proyectos basada en **metodologías ág
 
 ---
 
-## 🚀 Quick Start
-
-### 📋 Prerequisitos
-
-```bash
-Node.js >= v18
-PostgreSQL >= v14
-npm o yarn
-```
-
-### ⚙️ Instalación
-
-```bash
-# 1️⃣ Clonar el repositorio
-git clone https://github.com/bananareverse/Iteria.git
-cd Iteria
-
-# 2️⃣ Frontend Setup
-cd frontend
-npm install
-npm run dev
-
-# 3️⃣ Backend Setup
-cd ../backend
-npm install
-npm run dev
-```
-
-> 🐳 **Docker:** Ejecuta `docker-compose up -d` en la raíz del proyecto
-
 ---
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```mermaid
 graph TD
@@ -138,7 +90,7 @@ graph TD
 
 ---
 
-## 👨‍💻 Equipo DevOps
+## Equipo DevOps
 
 <div align="center">
 
@@ -153,18 +105,3 @@ graph TD
 
 ---
 
-## 📝 Licencia
-
-Este proyecto está bajo la licencia **MIT** - consulta el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-<div align="center">
-
-### 🌟 Proyecto Integrador - Metodología DevOps 2026
-
-**[⬆️ Volver arriba](#-iteria)**
-
-Hecho con 💙 por el equipo Iteria
-
-</div>
