@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import iteriaLogo from '../../img/Iteria_Logo.jpeg'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -26,55 +27,135 @@ export default function Login() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-teal-800 mb-6">Iniciar sesión</h1>
+    <div className="min-h-screen bg-slate-50 font-sans antialiased flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200/90 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+              <img src={iteriaLogo} alt="Iteria" className="h-15 w-auto object-contain" />
+            </Link>
+            <Link
+              to="/register"
+              className="px-4 py-2 bg-[#4CD96A] text-slate-900 rounded-xl text-sm font-semibold hover:bg-[#3eb85c] transition-colors shadow-sm"
+            >
+              Registrarse
+            </Link>
+          </div>
+        </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="iteria@email.com"
-          />
+      {/* Main: layout de dos columnas en desktop */}
+      <main className="flex-1 flex flex-col lg:flex-row">
+        {/* Lado izquierdo: branding (solo en desktop) */}
+        <div className="hidden lg:flex lg:flex-1 bg-slate-900 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(76,217,106,0.12),transparent)]" />
+          <div className="relative flex flex-col justify-center px-12 xl:px-16 py-16">
+            <h2 className="text-3xl xl:text-4xl font-bold leading-tight mb-4">
+              Vuelve a tus <span className="text-[#4CD96A]">proyectos</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-md leading-relaxed">
+              Inicia sesión para seguir gestionando tareas y equipos con Iteria.
+            </p>
+            <ul className="mt-8 space-y-3 text-slate-300">
+              <li className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-[#4CD96A]/20 flex items-center justify-center text-[#4CD96A] text-sm font-bold">✓</span>
+                Acceso seguro
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-[#4CD96A]/20 flex items-center justify-center text-[#4CD96A] text-sm font-bold">✓</span>
+                Tus datos protegidos
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-[#4CD96A]/20 flex items-center justify-center text-[#4CD96A] text-sm font-bold">✓</span>
+                Sin coste oculto
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="Tu contraseña"
-          />
+        {/* Lado derecho: formulario */}
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12 lg:py-16">
+          <div className="w-full max-w-md">
+            <div className="lg:hidden mb-8 text-center">
+              <Link to="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-[#4CD96A] transition-colors">
+                <img src={iteriaLogo} alt="Iteria" className="h-8 w-auto" />
+                <span className="font-bold text-slate-900">Iteria</span>
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8 sm:p-10">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+                Iniciar sesión
+              </h1>
+              <p className="text-slate-500 text-sm mb-8">
+                Introduce tu correo y contraseña para entrar.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                    Correo electrónico
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    placeholder="tu@empresa.com"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4CD96A] focus:border-[#4CD96A] transition-colors placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+                    Contraseña
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    placeholder="Tu contraseña"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4CD96A] focus:border-[#4CD96A] transition-colors placeholder:text-slate-400"
+                  />
+                </div>
+
+                {mensaje && (
+                  <div
+                    className={`rounded-xl px-4 py-3 text-sm ${
+                      mensaje.includes('iniciada')
+                        ? 'bg-[#4CD96A]/10 text-[#2d9f4a] border border-[#4CD96A]/20'
+                        : 'bg-red-50 text-red-600 border border-red-200'
+                    }`}
+                  >
+                    {mensaje}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={cargando}
+                  className="w-full py-3.5 bg-[#4CD96A] text-slate-900 font-semibold rounded-xl hover:bg-[#3eb85c] active:scale-[0.99] transition-all shadow-lg shadow-[#4CD96A]/25 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                >
+                  {cargando ? 'Entrando...' : 'Entrar'}
+                </button>
+              </form>
+
+              <p className="mt-6 text-center text-slate-500 text-sm">
+                ¿No tienes cuenta?{' '}
+                <Link to="/register" className="text-[#4CD96A] font-semibold hover:underline">
+                  Registrarse
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
-
-        {mensaje && (
-          <p className={`text-sm ${mensaje.includes('iniciada') ? 'text-green-600' : 'text-red-600'}`}>
-            {mensaje}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={cargando}
-          className="w-full py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {cargando ? 'Iniciando...' : 'Entrar'}
-        </button>
-      </form>
-
-      <p className="mt-4 text-slate-600 text-center">
-        ¿No tienes cuenta?{' '}
-        <Link to="/register" className="text-teal-600 font-medium hover:underline">
-          Registrarse
-        </Link>
-      </p>
+      </main>
     </div>
   )
 }
