@@ -23,7 +23,7 @@ export default function Login() {
       return
     }
     setMensaje('¡Sesión iniciada!')
-    navigate('/')
+    navigate('/dashboard')
   }
 
   return (
