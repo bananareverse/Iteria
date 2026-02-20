@@ -1,10 +1,11 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
+:root {
   --color-primary: #4CD96A;
   --color-primary-600: #3eb85c;
   --color-primary-700: #32a34d;
   --color-primary-50: #ecfdf2;
   --color-primary-100: #d1fae0;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }

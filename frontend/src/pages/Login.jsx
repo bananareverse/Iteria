@@ -33,7 +33,7 @@ export default function Login() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-              <img src={iteriaLogo} alt="Iteria" className="h-15 w-auto object-contain" />
+              <img src={iteriaLogo} alt="Iteria" className="h-12 w-auto object-contain" />
             </Link>
             <Link
               to="/register"
@@ -79,8 +79,7 @@ export default function Login() {
           <div className="w-full max-w-md">
             <div className="lg:hidden mb-8 text-center">
               <Link to="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-[#4CD96A] transition-colors">
-                <img src={iteriaLogo} alt="Iteria" className="h-8 w-auto" />
-                <span className="font-bold text-slate-900">Iteria</span>
+                <img src={iteriaLogo} alt="Iteria" className="h-20 w-auto" />
               </Link>
             </div>
 

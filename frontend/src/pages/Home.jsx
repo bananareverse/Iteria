@@ -45,7 +45,7 @@ export default function Home() {
       <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
       <div className="flex items-center justify-between h-16 lg:h-18">
         <Link to='/' className='flex items-center gap-3 hover:opacity-70 '>
-        <img src={iteriaLogo} alt='Iteria' className='h-15 w-auto object-contain' />
+        <img src={iteriaLogo} alt='Iteria' className='h-12 w-auto object-contain' />
         </Link>
 
         <nav className='hidden md:flex items-center gap-8'>
@@ -150,7 +150,7 @@ export default function Home() {
       <footer className='border-t border-slate-200 bg-white py-8'>
       <div className='max-w-6xl mx-auto px-4 flex flex-col items-center gap-4'>
             <div className='flex items-center gap-2'>
-                <img src={iteriaLogo} alt='Iteria' className='h-15 w-auto object-contain' />
+                <img src={iteriaLogo} alt='Iteria' className='h-12 w-auto object-contain' />
                 <a href='#' className='text-slate-500 hover:text-slate-700 text-sm font-medium'>Terminos y condiciones</a>
             </div>
         </div>
