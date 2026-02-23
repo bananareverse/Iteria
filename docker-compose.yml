@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  frontend:
+    # Construir usando el Dockerfile en la carpeta ./frontend
+    build: 
+      context: ./frontend
+    
+    # Nombre del contenedor para identificarlo fácilmente
+    container_name: iteria-frontend
+    
+    # Mapeo de puertos: "Puerto-PC:Puerto-Contenedor"
+    ports:
+      - "5173:5173"
+    
+    # Volúmenes: Conecta tu carpeta local con la del contenedor para ver cambios en vivo
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Truco para evitar conflictos con node_modules
