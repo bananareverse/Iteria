@@ -14,11 +14,11 @@ availability_zones = ["us-east-1a", "us-east-1b"]
 # EC2
 ec2_instance_type = "t3.micro"
 ec2_ami_id        = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS us-east-1
-ec2_key_name      = "iteria-key"            # Nombre de tu key pair en AWS
+ec2_key_name      = "KEYPAIR Password"            # Nombre de tu key pair en AWS
 allowed_ssh_cidr  = "0.0.0.0/0"            # Cambia por tu IP: "xx.xx.xx.xx/32"
 
 # RDS
 db_name           = "iteria_db"
-db_username       = "iteria_admin"
-db_password       = "CambiaEstaPassword123!" # Usa un valor seguro
+db_username       = "Admin Username"
+db_password       = "ChangePassword" # Usa un valor seguro
 db_instance_class = "db.t3.micro"
