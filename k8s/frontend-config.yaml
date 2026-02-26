@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  VITE_SUPABASE_URL: "https://tsixhsorzalbzozmzedl.supabase.co"
+  VITE_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzaXhoc29yemFsYnpvem16ZWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MDU2NTYsImV4cCI6MjA4NTQ4MTY1Nn0.jR5H6mC3l_EVcv75kVen5ETCmKI1o8CQLSs0WtkjJFg"

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iteria-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iteria-frontend
+  template:
+    metadata:
+      labels:
+        app: iteria-frontend
+    spec:
+      containers:
+      - name: iteria-frontend
+        image: iteria-frontend
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5173
+        envFrom:
+        - configMapRef:
+            name: frontend-config
