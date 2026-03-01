@@ -59,8 +59,8 @@ resource "aws_db_instance" "postgres" {
   # En producción: multi_az = true para alta disponibilidad
   multi_az               = false
   publicly_accessible    = false
-  skip_final_snapshot    = false
-  final_snapshot_identifier = "${var.project_name}-${var.environment}-final-snapshot"
+  skip_final_snapshot    = true
+  final_snapshot_identifier = "${var.project_name}-${var.environment}-final-snapshot-2"
 
   # Backup automático (7 días)
   backup_retention_period = 0

@@ -7,13 +7,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  # Opcional: backend en S3 para estado remoto
-  # backend "s3" {
-  #   bucket = "iteria-terraform-state"
-  #   key    = "prod/terraform.tfstate"
-  #   region = var.aws_region
-  # }
 }
 
 provider "aws" {
