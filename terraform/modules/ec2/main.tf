@@ -110,6 +110,8 @@ resource "aws_instance" "backend" {
     set -e
     apt-get update -y
     snap install docker
+    sleep 30
+    groupadd -f docker
     usermod -aG docker ubuntu
     apt-get install -y git
     mkdir -p /home/ubuntu/iteria
