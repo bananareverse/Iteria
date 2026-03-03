@@ -108,48 +108,28 @@ resource "aws_instance" "backend" {
   user_data = <<-EOF
     #!/bin/bash
     set -e
-
-    # Actualizar sistema
     apt-get update -y
-    apt-get upgrade -y
-
-    # Instalar Docker
-    apt-get install -y ca-certificates curl gnupg lsb-release
-    mkdir -p /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    apt-get update -y
-    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-    # Habilitar Docker
-    systemctl enable docker
-    systemctl start docker
+    snap install docker
     usermod -aG docker ubuntu
-
-    # Instalar AWS CLI
-    apt-get install -y awscli
-
-    # Crear directorio de la app
+    apt-get install -y git
     mkdir -p /home/ubuntu/iteria
     chown ubuntu:ubuntu /home/ubuntu/iteria
-
-    # Crear archivo .env para el backend
-    cat > /home/ubuntu/iteria/.env <<ENVFILE
-    NODE_ENV=production
-    PORT=3000
-    DB_HOST=${var.db_host}
-    DB_PORT=5432
-    DB_NAME=${var.db_name}
-    DB_USER=${var.db_username}
-    DB_PASSWORD=${var.db_password}
-    AWS_REGION=${var.aws_region}
-    S3_BUCKET=${var.s3_bucket_name}
-    ENVFILE
-
-    chown ubuntu:ubuntu /home/ubuntu/iteria/.env
-    chmod 600 /home/ubuntu/iteria/.env
-
-    echo "✅ Servidor EC2 configurado correctamente para Iteria"
+    sudo -u ubuntu git clone https://github.com/bananareverse/Iteria.git /home/ubuntu/iteria
+    echo "services:" > /home/ubuntu/iteria/docker-compose.yml
+    echo "  frontend:" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "    build:" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "      context: ./frontend" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "      dockerfile: Dockerfile" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "      args:" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "        - VITE_SUPABASE_URL=https://tsixhsorzalbzozmzedl.supabase.co" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "        - VITE_SUPABASE_ANON_KEY=sb_publishable_TQlIfSsRPSdd-XHMuD9Fqg_a_M7floy" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "    ports:" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "      - '80:5173'" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "    restart: unless-stopped" >> /home/ubuntu/iteria/docker-compose.yml
+    chown ubuntu:ubuntu /home/ubuntu/iteria/docker-compose.yml
+    cd /home/ubuntu/iteria
+    docker compose up -d --build
+    echo "Iteria desplegado correctamente"
   EOF
 
   root_block_device {
