@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase'
 import iteriaLogo from '../../img/Iteria_Logo.jpeg'
 
 const Accesos_rapidos = [
-  { id: 'crear', label: 'Crear proyecto', desc: 'Nuevo proyecto', to: '#' },
-  {id: 'proyectos', label: 'Ver proyectos', desc: 'Consultar todos los proyectos', to:'#'},
+  { id: 'crear', label: 'Crear proyecto', desc: 'Nuevo proyecto', to: '/proyectos/crear' },
+  {id: 'proyectos', label: 'Ver proyectos', desc: 'Consultar todos los proyectos', to:'/proyectos'},
   {id: 'ajustes', label: 'Configuracion', desc:'Ajustes y preferencias', to: '#'}
 ]
 
@@ -74,7 +74,7 @@ export default function Dashboard() {
 
     <section className='p-5 rounded-2xl bg-[#4CD96A]/5 border border-[#4CD96A]/20'>
     <p className='text-slate-700 text-sm'>
-      <span className='font-semibold text-[#4CD96A]'>Tip:</span> Crea tu primer proyecto y organiza tareas con metodologias agiles.
+      <span className='font-semibold text-[#4CD96A]'>Consejo:</span> crea tu primer proyecto y organiza tus tareas de forma clara y ordenada.
     </p>
   </section>
   </main>
