@@ -1,0 +1,56 @@
+# Dockerfile Optimizado para Kubernetes en Producción
+# Build: docker build -t iteria-frontend:latest -f Dockerfile.prod ./frontend
+
+# ============================================================
+# Stage 1: Builder
+# ============================================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Instalar dependencias de build
+RUN apk add --no-cache python3 make g++
+
+# Copiar archivos de package
+COPY package.json package-lock.json ./
+
+# Instalar dependencias
+RUN npm ci --only=production
+
+# Copiar código fuente
+COPY . .
+
+# Build
+RUN npm run build
+
+# ============================================================
+# Stage 2: Runtime
+# ============================================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Crear usuario no-root
+RUN addgroup -g 1001 nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copiar node_modules del builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+
+# Copiar código buildado y otros archivos necesarios
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/public ./public
+
+# Cambiar de usuario
+USER nodejs
+
+# Exponer puerto
+EXPOSE 5173
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:5173', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Ejecutar aplicación con npm start
+CMD ["npm", "run", "preview"]

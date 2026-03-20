@@ -1,0 +1,22 @@
+# Archivos de estado (contienen info sensible)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Variables con secrets
+terraform.tfvars
+
+# Directorio de proveedores (se regenera con terraform init)
+.terraform/
+.terraform.lock.hcl
+
+# Logs de crash
+crash.log
+crash.*.log
+
+# Archivos generados
+*.tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
