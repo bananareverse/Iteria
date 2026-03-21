@@ -1,13 +1,19 @@
 # ─── Subnet Group para RDS ───────────────────────────────────────────────────
 resource "aws_db_subnet_group" "main" {
-  name       = "${var.project_name}-${var.environment}-db-subnet-group"
+  name       = "${var.project_name}-${var.environment}-rds-group"
   subnet_ids = var.subnet_ids
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-db-subnet-group"
+    Name        = "${var.project_name}-${var.environment}-rds-group"
     Project     = var.project_name
     Environment = var.environment
   }
+}
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [aws_db_subnet_group.main]
+
+  create_duration = "30s"
 }
 
 # ─── Security Group para RDS ─────────────────────────────────────────────────
@@ -55,6 +61,8 @@ resource "aws_db_instance" "postgres" {
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
+
+  depends_on = [time_sleep.wait_30_seconds]
 
   # En producción: multi_az = true para alta disponibilidad
   multi_az               = false

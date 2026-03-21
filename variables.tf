@@ -79,11 +79,6 @@ variable "db_username" {
   default     = "iteria_admin"
 }
 
-variable "db_password" {
-  description = "Contraseña de la base de datos"
-  type        = string
-  sensitive   = true
-}
 
 variable "db_instance_class" {
   description = "Clase de instancia RDS"
