@@ -123,8 +123,8 @@ resource "aws_instance" "backend" {
     echo "      context: ./frontend" >> /home/ubuntu/iteria/docker-compose.yml
     echo "      dockerfile: Dockerfile" >> /home/ubuntu/iteria/docker-compose.yml
     echo "      args:" >> /home/ubuntu/iteria/docker-compose.yml
-    echo "        - VITE_SUPABASE_URL=https://tsixhsorzalbzozmzedl.supabase.co" >> /home/ubuntu/iteria/docker-compose.yml
-    echo "        - VITE_SUPABASE_ANON_KEY=sb_publishable_TQlIfSsRPSdd-XHMuD9Fqg_a_M7floy" >> /home/ubuntu/iteria/docker-compose.yml
+    echo "VITE_SUPABASE_URL=https://tsixhsorzalbzozmzedl.supabase.co" > /home/ubuntu/iteria/frontend/.env
+echo "VITE_SUPABASE_ANON_KEY=sb_publishable_TQlIfSsRPSdd-XHMuD9Fqg_a_M7floy" >> /home/ubuntu/iteria/frontend/.env
     echo "    ports:" >> /home/ubuntu/iteria/docker-compose.yml
     echo "      - '80:5173'" >> /home/ubuntu/iteria/docker-compose.yml
     echo "    restart: unless-stopped" >> /home/ubuntu/iteria/docker-compose.yml
