@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: iteria-network-policy
+  namespace: iteria
+spec:
+  podSelector:
+    matchLabels:
+      app: iteria-frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5173
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0

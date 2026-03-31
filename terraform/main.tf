@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -25,6 +29,17 @@ module "vpc" {
   availability_zones = var.availability_zones
 }
 
+# ─── Secrets Manager ─────────────────────────────────────────────────────────
+module "secrets" {
+  source = "./modules/secrets"
+
+  project_name = var.project_name
+  environment  = var.environment
+  db_username  = var.db_username
+  db_name      = var.db_name
+  db_host      = module.rds.db_endpoint
+}
+
 # ─── EC2 (Express Backend) ───────────────────────────────────────────────────
 module "ec2" {
   source = "./modules/ec2"
@@ -40,7 +55,8 @@ module "ec2" {
   db_host           = module.rds.db_endpoint
   db_name           = var.db_name
   db_username       = var.db_username
-  db_password       = var.db_password
+  db_password       = module.secrets.db_password
+  secret_arn        = module.secrets.secret_arn
   s3_bucket_name    = module.s3.bucket_name
   aws_region        = var.aws_region
 }
@@ -53,7 +69,7 @@ module "rds" {
   environment         = var.environment
   db_name             = var.db_name
   db_username         = var.db_username
-  db_password         = var.db_password
+  db_password         = module.secrets.db_password
   db_instance_class   = var.db_instance_class
   subnet_ids          = module.vpc.private_subnet_ids
   vpc_id              = module.vpc.vpc_id
@@ -66,4 +82,17 @@ module "s3" {
 
   project_name = var.project_name
   environment  = var.environment
+}
+
+# ─── EKS (Kubernetes Cluster) ────────────────────────────────────────────────
+module "eks" {
+  source = "./modules/eks"
+
+  project_name   = var.project_name
+  environment    = var.environment
+  subnet_ids     = module.vpc.public_subnet_ids
+  instance_types = var.eks_instance_types
+  desired_size   = var.eks_desired_size
+  min_size       = var.eks_min_size
+  max_size       = var.eks_max_size
 }

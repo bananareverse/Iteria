@@ -47,7 +47,7 @@ export default function Dashboard() {
 
     {/* Columna Main */}
     <main className='flex-1 w-full max-w-4xl mx-auto px-4 py-8 lg:py-12'>
-    {/* Parte de la bienvienida*/}
+    {/* Parte de la bienvenida*/}
     <section className='mb-10'>
       <p className = 'text-slate-500 text-sm capitalize mb-1'>{fecha}</p>
       <h1 className= 'text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight'> Hola, {nombre}</h1>

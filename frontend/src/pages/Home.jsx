@@ -4,7 +4,7 @@ import iteriaLogo from '../../img/Iteria_Logo.jpeg'
 
 const CARDS = [
     {
-    tag: 'PPROYECTOS Y TAREAS',
+    tag: 'PROYECTOS Y TAREAS',
     tagClass: 'bg-[#4CD96A]/10 text-[#2d9f4a]',
     iconClass: 'bg-[#4CD96A]/20 text-[#4CD96A]',
     title: 'Desarrollo',
@@ -49,7 +49,7 @@ export default function Home() {
         </Link>
 
         <nav className='hidden md:flex items-center gap-8'>
-            <a href='#' classname='text-slate-600 hover:text-slate-900 text-sm font-medium'>
+            <a href='#' className='text-slate-600 hover:text-slate-900 text-sm font-medium'>
                 Funciones
             </a>
             <a href='#' className='text-slate-600 hover:text-slate-900 text-sm font-medium'>
@@ -74,7 +74,7 @@ export default function Home() {
                     <p className='text-slate-700 text-sm flex-1'>
                         <span className='font-semibold text-slate-900'>Iteria</span> - Gestión de proyectos ágil para estudiantes y equipos.
                         <a href='#' className='ml-2 text-[#4CD96A] font-semibold hover:underline'>Más información →</a>
-                        <button type='button' onClick={() => setBannerClosed(true)} className='text-slate-900 hover:text-slate-600 p-1 rounded transition-colors px-12 text-lg' aria-label='Cerrar' >   ✕</button>
+                        <button type='button' onClick={() => setBannerClosed(true)} className='text-slate-900 hover:text-slate-600 p-1 rounded transition-colors text-lg' aria-label='Cerrar' >   ✕</button>
                     </p>
                 </div>
             </div>

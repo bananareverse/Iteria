@@ -15,8 +15,20 @@ output "rds_endpoint" {
 }
 
 output "s3_bucket_name" {
-  description = "Nombre del bucket S3"
+  description = "Name of the S3 bucket"
   value       = module.s3.bucket_name
+}
+
+# ─── EKS ─────────────────────────────────────────────────────────────────────
+
+output "eks_cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
+}
+
+output "eks_cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
 }
 
 output "s3_bucket_url" {
@@ -32,4 +44,9 @@ output "vpc_id" {
 output "ssh_connection" {
   description = "Comando para conectarse al servidor por SSH"
   value       = "ssh -i ~/.ssh/${var.ec2_key_name}.pem ubuntu@${module.ec2.public_ip}"
+}
+
+output "secret_arn" {
+  description = "ARN del secreto en Secrets Manager"
+  value       = module.secrets.secret_arn
 }

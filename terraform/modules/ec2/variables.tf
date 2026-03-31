@@ -15,3 +15,4 @@ variable "db_password" {
 }
 variable "s3_bucket_name" { type = string }
 variable "aws_region" { type = string }
+variable "secret_arn" { type = string }

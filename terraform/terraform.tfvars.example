@@ -22,3 +22,9 @@ db_name           = "iteria_db"
 db_username       = "Admin Username"
 db_password       = "ChangePassword" # Usa un valor seguro
 db_instance_class = "db.t3.micro"
+
+# EKS
+eks_instance_types = ["t3.medium"]
+eks_desired_size   = 2
+eks_min_size       = 1
+eks_max_size       = 4

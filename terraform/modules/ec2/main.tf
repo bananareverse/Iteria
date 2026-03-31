@@ -75,19 +75,18 @@ resource "aws_iam_role_policy" "ec2_s3_policy" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
-      ]
-      Resource = [
-        "arn:aws:s3:::${var.s3_bucket_name}",
-        "arn:aws:s3:::${var.s3_bucket_name}/*"
-      ]
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:*"]
+        Resource = ["arn:aws:s3:::${var.s3_bucket_name}", "arn:aws:s3:::${var.s3_bucket_name}/*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [var.secret_arn]
+      }
+    ]
   })
 }
 
@@ -129,6 +128,21 @@ echo "VITE_SUPABASE_ANON_KEY=sb_publishable_TQlIfSsRPSdd-XHMuD9Fqg_a_M7floy" >> 
     echo "      - '80:5173'" >> /home/ubuntu/iteria/docker-compose.yml
     echo "    restart: unless-stopped" >> /home/ubuntu/iteria/docker-compose.yml
     chown ubuntu:ubuntu /home/ubuntu/iteria/docker-compose.yml
+    # Instalar AWS CLI y jq para parsear el JSON del secreto
+    apt-get install -y awscli jq
+
+    # Recuperar credenciales de Secrets Manager
+    SECRET_ARN="${var.secret_arn}"
+    REGION="${var.aws_region}"
+    
+    CREDENTIALS=$(aws secretsmanager get-secret-value --secret-id $SECRET_ARN --region $REGION --query SecretString --output text)
+    
+    DB_PASSWORD_VAULT=$(echo $CREDENTIALS | jq -r .password)
+    DB_HOST_VAULT=$(echo $CREDENTIALS | jq -r .host)
+
+    echo "DB_PASSWORD=$DB_PASSWORD_VAULT" >> /etc/environment
+    echo "DB_HOST=$DB_HOST_VAULT" >> /etc/environment
+
     cd /home/ubuntu/iteria
     docker compose up -d --build
     echo "Iteria desplegado correctamente"

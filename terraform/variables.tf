@@ -83,10 +83,37 @@ variable "db_password" {
   description = "Contraseña de la base de datos"
   type        = string
   sensitive   = true
+  default     = "" # Se genera automáticamente en el módulo 'secrets' si está vacío
 }
 
 variable "db_instance_class" {
-  description = "Clase de instancia RDS"
+  description = "RDS instance class"
   type        = string
   default     = "db.t3.micro"
+}
+
+# ─── EKS ─────────────────────────────────────────────────────────────────────
+
+variable "eks_instance_types" {
+  description = "EKS node group instance types"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "eks_desired_size" {
+  description = "Desired number of worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "eks_min_size" {
+  description = "Minimum number of worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "eks_max_size" {
+  description = "Maximum number of worker nodes"
+  type        = number
+  default     = 4
 }
