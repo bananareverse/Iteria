@@ -52,8 +52,6 @@ export default function CrearProyecto() {
     nombre: '',
     descripcion: '',
     plantilla: 'Basica',
-    fechaInicio: '',
-    fechaFin: '',
   })
 
   async function handleSubmit(event) {
@@ -65,18 +63,10 @@ export default function CrearProyecto() {
     const nombre = String(formData.get('nombre') || '').trim()
     const descripcion = String(formData.get('descripcion') || '').trim()
     const plantilla = String(formData.get('plantilla') || 'Basica')
-    const fechaInicio = String(formData.get('fechaInicio') || '').trim()
-    const fechaFin = String(formData.get('fechaFin') || '').trim()
 
     if (!nombre) {
       setGuardando(false)
       setMensaje('El nombre del proyecto es obligatorio.')
-      return
-    }
-
-    if (!fechaInicio) {
-      setGuardando(false)
-      setMensaje('La fecha de inicio es obligatoria.')
       return
     }
 
@@ -90,30 +80,7 @@ export default function CrearProyecto() {
       project_type: projectType,
     }
 
-    const dateFields = []
-    if (fechaInicio) {
-      const base = { fecha_inicio: fechaInicio }
-      dateFields.push(base)
-      if (fechaFin) {
-        dateFields.push({ ...base, fecha_entrega: fechaFin })
-        dateFields.push({ ...base, fecha_fin: fechaFin })
-        dateFields.push({ ...base, fecha_final: fechaFin })
-        dateFields.push({ ...base, end_date: fechaFin })
-        dateFields.push({ ...base, due_date: fechaFin })
-        dateFields.push({ ...base, deadline: fechaFin })
-        dateFields.push({ ...base, end_at: fechaFin })
-        dateFields.push({ ...base, finish_date: fechaFin })
-        dateFields.push({ ...base, due_at: fechaFin })
-        dateFields.push({ start: fechaInicio, end: fechaFin })
-        dateFields.push({ start_date: fechaInicio, end_date: fechaFin })
-        dateFields.push({ start_date: fechaInicio, due_date: fechaFin })
-        dateFields.push({ start_date: fechaInicio, deadline: fechaFin })
-        dateFields.push({ start_at: fechaInicio, end_at: fechaFin })
-        dateFields.push({ begin_date: fechaInicio, finish_date: fechaFin })
-        dateFields.push({ start_at: fechaInicio, due_at: fechaFin })
-      }
-    }
-    dateFields.push({})
+    const dateFields = [{}]
 
     const clientFields = []
     if (nombreCliente) {
@@ -176,8 +143,6 @@ export default function CrearProyecto() {
       nombre: '',
       descripcion: '',
       plantilla: 'Basica',
-      fechaInicio: '',
-      fechaFin: '',
     })
 
     setTimeout(() => navigate('/dashboard'), 900)
@@ -275,32 +240,6 @@ export default function CrearProyecto() {
                 rows={4}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
               />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="fechaInicio">Fecha de inicio</label>
-                <input
-                  id="fechaInicio"
-                  name="fechaInicio"
-                  type="date"
-                  value={form.fechaInicio}
-                  onChange={(e) => setForm((prev) => ({ ...prev, fechaInicio: e.target.value }))}
-                  required
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="fechaFin">Fecha de fin (opcional)</label>
-                <input
-                  id="fechaFin"
-                  name="fechaFin"
-                  type="date"
-                  value={form.fechaFin}
-                  onChange={(e) => setForm((prev) => ({ ...prev, fechaFin: e.target.value }))}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
-                />
-              </div>
             </div>
 
             <div className="space-y-3">

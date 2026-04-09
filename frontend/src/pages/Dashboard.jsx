@@ -275,7 +275,7 @@ export default function Dashboard() {
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#4CD96A]">Panel de control</p>
               <h1 className="mt-2 text-3xl lg:text-4xl font-bold text-slate-900">Hola, {nombre}</h1>
-              <p className="mt-2 text-sm text-slate-500">Aquí está tu vista general de proyectos y métricas clave.</p>
+              <p className="mt-2 text-sm text-slate-500">Revisa en un vistazo tus proyectos activos, su avance y lo que sigue por hacer.</p>
             </div>
             <Link
               to="/proyectos/crear"
