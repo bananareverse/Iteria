@@ -82,7 +82,7 @@ function normalizeProject(row, index) {
     estado: normalizeStatus(rawStatus),
     prioridad: normalizePriority(rawPriority),
     progreso: normalizeProgress(rawProgress, rawStatus),
-    fechaEntrega: pickValue(row, ['fecha_entrega', 'due_date', 'deadline', 'end_date', 'fecha_fin'], null),
+    fechaEntrega: pickValue(row, ['fecha_entrega', 'due_date', 'deadline', 'end_date', 'fecha_fin', 'end', 'end_at', 'finish_date', 'due_at', 'fecha_final'], null),
   }
 }
 

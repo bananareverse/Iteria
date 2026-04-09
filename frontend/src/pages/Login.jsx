@@ -15,15 +15,19 @@ export default function Login() {
     setMensaje('')
     setCargando(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    setCargando(false)
-    if (error) {
-      setMensaje(error.message)
-      return
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setMensaje(error.message)
+        return
+      }
+      setMensaje('¡Sesión iniciada!')
+      navigate('/dashboard')
+    } catch (err) {
+      setMensaje(err.message || 'Error inesperado. Verifica tu conexión y configuración.')
+    } finally {
+      setCargando(false)
     }
-    setMensaje('¡Sesión iniciada!')
-    navigate('/dashboard')
   }
 
   return (

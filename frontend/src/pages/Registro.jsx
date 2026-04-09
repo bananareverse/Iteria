@@ -15,15 +15,19 @@ export default function Registro() {
     setMensaje('')
     setCargando(true)
 
-    const { error } = await supabase.auth.signUp({ email, password })
-
-    setCargando(false)
-    if (error) {
-      setMensaje(error.message)
-      return
+    try {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setMensaje(error.message)
+        return
+      }
+      setMensaje('¡Cuenta creada! Revisa tu correo para confirmar.')
+      setTimeout(() => navigate('/login'), 2000)
+    } catch (err) {
+      setMensaje(err.message || 'Error inesperado. Verifica tu conexión y configuración.')
+    } finally {
+      setCargando(false)
     }
-    setMensaje('¡Cuenta creada! Revisa tu correo para confirmar.')
-    setTimeout(() => navigate('/login'), 2000)
   }
 
   return (

@@ -38,14 +38,22 @@ const PROJECT_TYPE_MAP = {
   Tecnica: 'company',
 }
 
+function isMissingColumnError(error) {
+  const code = String(error?.code || '')
+  const message = String(error?.message || '').toLowerCase()
+  return code === 'PGRST204' || message.includes('schema cache') || message.includes('could not find the')
+}
+
 export default function CrearProyecto() {
   const navigate = useNavigate()
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [form, setForm] = useState({
     nombre: '',
-    cliente: '',
+    descripcion: '',
     plantilla: 'Basica',
+    fechaInicio: '',
+    fechaFin: '',
   })
 
   async function handleSubmit(event) {
@@ -55,7 +63,10 @@ export default function CrearProyecto() {
 
     const formData = new FormData(event.currentTarget)
     const nombre = String(formData.get('nombre') || '').trim()
+    const descripcion = String(formData.get('descripcion') || '').trim()
     const plantilla = String(formData.get('plantilla') || 'Basica')
+    const fechaInicio = String(formData.get('fechaInicio') || '').trim()
+    const fechaFin = String(formData.get('fechaFin') || '').trim()
 
     if (!nombre) {
       setGuardando(false)
@@ -63,21 +74,99 @@ export default function CrearProyecto() {
       return
     }
 
+    if (!fechaInicio) {
+      setGuardando(false)
+      setMensaje('La fecha de inicio es obligatoria.')
+      return
+    }
+
     const envTable = import.meta.env.VITE_PROJECTS_TABLE || 'projects'
 
     const projectType = PROJECT_TYPE_MAP[plantilla] ?? 'student'
+    const nombreCliente = String(formData.get('cliente') || '').trim()
 
-    const payload = {
+    const basePayload = {
       name: nombre,
       project_type: projectType,
     }
 
-    const { error } = await supabase.from(envTable).insert(payload)
+    const dateFields = []
+    if (fechaInicio) {
+      const base = { fecha_inicio: fechaInicio }
+      dateFields.push(base)
+      if (fechaFin) {
+        dateFields.push({ ...base, fecha_entrega: fechaFin })
+        dateFields.push({ ...base, fecha_fin: fechaFin })
+        dateFields.push({ ...base, fecha_final: fechaFin })
+        dateFields.push({ ...base, end_date: fechaFin })
+        dateFields.push({ ...base, due_date: fechaFin })
+        dateFields.push({ ...base, deadline: fechaFin })
+        dateFields.push({ ...base, end_at: fechaFin })
+        dateFields.push({ ...base, finish_date: fechaFin })
+        dateFields.push({ ...base, due_at: fechaFin })
+        dateFields.push({ start: fechaInicio, end: fechaFin })
+        dateFields.push({ start_date: fechaInicio, end_date: fechaFin })
+        dateFields.push({ start_date: fechaInicio, due_date: fechaFin })
+        dateFields.push({ start_date: fechaInicio, deadline: fechaFin })
+        dateFields.push({ start_at: fechaInicio, end_at: fechaFin })
+        dateFields.push({ begin_date: fechaInicio, finish_date: fechaFin })
+        dateFields.push({ start_at: fechaInicio, due_at: fechaFin })
+      }
+    }
+    dateFields.push({})
+
+    const clientFields = []
+    if (nombreCliente) {
+      clientFields.push({ cliente: nombreCliente })
+      clientFields.push({ client: nombreCliente })
+      clientFields.push({ company: nombreCliente })
+    } else {
+      clientFields.push({})
+    }
+
+    const descriptionFields = []
+    if (descripcion) {
+      descriptionFields.push({ descripcion: descripcion })
+      descriptionFields.push({ description: descripcion })
+      descriptionFields.push({ notes: descripcion })
+    } else {
+      descriptionFields.push({})
+    }
+
+    let createError = null
+    let created = false
+
+    const payloads = []
+
+    for (const dates of dateFields) {
+      for (const client of clientFields) {
+        for (const desc of descriptionFields) {
+          payloads.push({
+            ...basePayload,
+            ...dates,
+            ...client,
+            ...desc,
+          })
+        }
+      }
+    }
+
+    for (const payload of payloads) {
+      const { error } = await supabase.from(envTable).insert(payload)
+      if (!error) {
+        created = true
+        break
+      }
+      createError = error
+      if (!isMissingColumnError(error)) {
+        break
+      }
+    }
 
     setGuardando(false)
 
-    if (error) {
-      setMensaje(`No se pudo crear el proyecto: ${formatSupabaseError(error)}`)
+    if (!created) {
+      setMensaje(`No se pudo crear el proyecto: ${formatSupabaseError(createError)}`)
       return
     }
 
@@ -85,11 +174,13 @@ export default function CrearProyecto() {
 
     setForm({
       nombre: '',
-      cliente: '',
+      descripcion: '',
       plantilla: 'Basica',
+      fechaInicio: '',
+      fechaFin: '',
     })
 
-    setTimeout(() => navigate('/proyectos'), 900)
+    setTimeout(() => navigate('/dashboard'), 900)
   }
 
   return (
@@ -108,65 +199,127 @@ export default function CrearProyecto() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 lg:py-10">
-        <section className="mb-8">
-          <p className="text-slate-500 text-sm mb-1">Panel de trabajo</p>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">Crear proyecto</h1>
-          <p className="text-slate-600 mt-2">Completa los datos para registrar un nuevo proyecto en Supabase.</p>
-        </section>
+      <main className="max-w-4xl mx-auto px-4 py-8 lg:py-12">
+        <div className="mb-8">
+          <p className="text-slate-500 text-sm mb-2">Crear proyecto</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">Nuevo proyecto</h1>
+          <p className="text-slate-600 mt-2">Completa la información para registrar un nuevo proyecto en tu panel.</p>
+        </div>
 
-        <section className="bg-white border border-slate-200/80 rounded-2xl p-5 md:p-6 shadow-sm">
-          <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="nombre">Nombre del proyecto</label>
+        <section className="bg-white border border-slate-200/80 rounded-[2rem] p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div>
+              <p className="text-base font-semibold text-slate-900 mb-2">Tipo de proyecto</p>
+              <p className="text-sm text-slate-500 mb-4">Elige el estilo de tu proyecto según su naturaleza.</p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {[
+                  {
+                    key: 'Basica',
+                    title: 'Básica',
+                    subtitle: 'Proyectos académicos, tareas, tesis',
+                    icon: '🎓',
+                  },
+                  {
+                    key: 'Tecnica',
+                    title: 'Técnica',
+                    subtitle: 'Proyectos laborales, freelance, empresa',
+                    icon: '🧰',
+                  },
+                ].map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, plantilla: option.key }))}
+                    className={`rounded-[1.75rem] border p-6 text-left transition-all ${
+                      form.plantilla === option.key
+                        ? 'border-[#4CD96A] bg-[#4CD96A]/5 shadow-sm ring-2 ring-[#4CD96A]/20'
+                        : 'border-slate-200/90 bg-white hover:border-[#4CD96A]/50 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e7f9ef] text-xl">
+                        {option.icon}
+                      </span>
+                      <div>
+                        <p className="text-lg font-semibold text-slate-900">{option.title}</p>
+                        <p className="text-sm text-slate-500 mt-1">{option.subtitle}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="plantilla" value={form.plantilla} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="nombre">Título del proyecto</label>
               <input
                 id="nombre"
                 name="nombre"
                 type="text"
                 value={form.nombre}
                 onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value }))}
-                required
-                placeholder="Ej. Implementacion CRM"
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/40 focus:border-[#4CD96A]"
+                placeholder="Mi nuevo proyecto"
+                className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="cliente">Cliente</label>
-              <input
-                id="cliente"
-                type="text"
-                value={form.cliente}
-                onChange={(e) => setForm((prev) => ({ ...prev, cliente: e.target.value }))}
-                placeholder="Opcional"
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/40 focus:border-[#4CD96A]"
+              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="descripcion">Descripción</label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={form.descripcion}
+                onChange={(e) => setForm((prev) => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Describe tu proyecto..."
+                rows={4}
+                className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="plantilla">Plantilla</label>
-              <select
-                id="plantilla"
-                name="plantilla"
-                value={form.plantilla}
-                onChange={(e) => setForm((prev) => ({ ...prev, plantilla: e.target.value }))}
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/40 focus:border-[#4CD96A]"
-              >
-                <option value="Basica">Basica</option>
-                <option value="Tecnica">Tecnica</option>
-              </select>
-              <p className="text-xs text-slate-500 mt-2">{TEMPLATE_DESCRIPTIONS[form.plantilla]}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="fechaInicio">Fecha de inicio</label>
+                <input
+                  id="fechaInicio"
+                  name="fechaInicio"
+                  type="date"
+                  value={form.fechaInicio}
+                  onChange={(e) => setForm((prev) => ({ ...prev, fechaInicio: e.target.value }))}
+                  required
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="fechaFin">Fecha de fin (opcional)</label>
+                <input
+                  id="fechaFin"
+                  name="fechaFin"
+                  type="date"
+                  value={form.fechaFin}
+                  onChange={(e) => setForm((prev) => ({ ...prev, fechaFin: e.target.value }))}
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
+                />
+              </div>
             </div>
 
-            <div className="md:col-span-2 flex items-center gap-3">
+            <div className="space-y-3">
               <button
                 type="submit"
                 disabled={guardando}
-                className="px-5 py-2.5 rounded-xl bg-[#4CD96A] text-slate-900 text-sm font-semibold hover:bg-[#3eb85c] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full rounded-2xl bg-[#4CD96A] px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-[#4CD96A]/25 transition hover:bg-[#3eb85c] disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {guardando ? 'Guardando...' : 'Crear proyecto'}
+                {guardando ? 'Creando...' : 'Crear proyecto'}
               </button>
-              {mensaje && <p className="text-sm text-slate-600">{mensaje}</p>}
+              {mensaje && (
+                <div className={`rounded-2xl p-4 text-sm font-medium ${
+                  mensaje.includes('Error')
+                    ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                }`}>
+                  {mensaje}
+                </div>
+              )}
             </div>
           </form>
         </section>
