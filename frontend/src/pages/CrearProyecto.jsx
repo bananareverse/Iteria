@@ -1,48 +1,24 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
-import iteriaLogo from '../../img/Iteria_Logo.jpeg'
+import { 
+  ArrowLeft, 
+  PlusCircle, 
+  GraduationCap, 
+  Briefcase, 
+  Type, 
+  AlignLeft,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react'
 
-const TEMPLATE_DESCRIPTIONS = {
-  Basica: 'Enfoque simple para empezar rapido: objetivos, tareas principales y fechas clave.',
-  Tecnica: 'Enfoque para equipos de desarrollo: requisitos tecnicos, backlog detallado y seguimiento por entregables.',
-}
-
-function isMissingTableError(error) {
-  const code = String(error?.code || '')
-  const message = String(error?.message || '').toLowerCase()
-
-  return (
-    code === '42P01' ||
-    code === 'PGRST205' ||
-    message.includes('does not exist') ||
-    message.includes('could not find the table')
-  )
-}
-
-function formatSupabaseError(error) {
-  const parts = [
-    error?.message,
-    error?.details,
-    error?.hint,
-    error?.code ? `code=${error.code}` : '',
-  ].filter(Boolean)
-
-  return parts.length > 0 ? parts.join(' | ') : 'error desconocido'
-}
-
-// Valid values per DB check constraint: projects_project_type_check
-// project_type = ANY (ARRAY['student'::text, 'company'::text])
 const PROJECT_TYPE_MAP = {
   Basica: 'student',
   Tecnica: 'company',
 }
 
-function isMissingColumnError(error) {
-  const code = String(error?.code || '')
-  const message = String(error?.message || '').toLowerCase()
-  return code === 'PGRST204' || message.includes('schema cache') || message.includes('could not find the')
-}
+import { insertProject } from '../lib/dbUtils'
 
 export default function CrearProyecto() {
   const navigate = useNavigate()
@@ -59,210 +35,175 @@ export default function CrearProyecto() {
     setMensaje('')
     setGuardando(true)
 
-    const formData = new FormData(event.currentTarget)
-    const nombre = String(formData.get('nombre') || '').trim()
-    const descripcion = String(formData.get('descripcion') || '').trim()
-    const plantilla = String(formData.get('plantilla') || 'Basica')
-
-    if (!nombre) {
-      setGuardando(false)
-      setMensaje('El nombre del proyecto es obligatorio.')
-      return
-    }
-
-    const envTable = import.meta.env.VITE_PROJECTS_TABLE || 'projects'
-
-    const projectType = PROJECT_TYPE_MAP[plantilla] ?? 'student'
-    const nombreCliente = String(formData.get('cliente') || '').trim()
-
-    const basePayload = {
-      name: nombre,
+    const projectType = PROJECT_TYPE_MAP[form.plantilla] || 'student'
+    const payload = { 
+      nombre: form.nombre, 
+      name: form.nombre, // Fallback for 'name' column
+      descripcion: form.descripcion, 
+      description: form.descripcion, // Fallback for 'description' column
       project_type: projectType,
+      status: 'Pendiente',
+      progreso: 0,
+      prioridad: 'Media'
     }
 
-    const dateFields = [{}]
-
-    const clientFields = []
-    if (nombreCliente) {
-      clientFields.push({ cliente: nombreCliente })
-      clientFields.push({ client: nombreCliente })
-      clientFields.push({ company: nombreCliente })
-    } else {
-      clientFields.push({})
+    try {
+      const { error } = await insertProject(payload)
+      if (error) throw error
+      
+      setMensaje('¡Proyecto creado con éxito!')
+      setTimeout(() => navigate('/proyectos'), 1500)
+    } catch (err) {
+      setMensaje(`Error: ${err.message}`)
+    } finally {
+      setGuardando(false)
     }
-
-    const descriptionFields = []
-    if (descripcion) {
-      descriptionFields.push({ descripcion: descripcion })
-      descriptionFields.push({ description: descripcion })
-      descriptionFields.push({ notes: descripcion })
-    } else {
-      descriptionFields.push({})
-    }
-
-    let createError = null
-    let created = false
-
-    const payloads = []
-
-    for (const dates of dateFields) {
-      for (const client of clientFields) {
-        for (const desc of descriptionFields) {
-          payloads.push({
-            ...basePayload,
-            ...dates,
-            ...client,
-            ...desc,
-          })
-        }
-      }
-    }
-
-    for (const payload of payloads) {
-      const { error } = await supabase.from(envTable).insert(payload)
-      if (!error) {
-        created = true
-        break
-      }
-      createError = error
-      if (!isMissingColumnError(error)) {
-        break
-      }
-    }
-
-    setGuardando(false)
-
-    if (!created) {
-      setMensaje(`No se pudo crear el proyecto: ${formatSupabaseError(createError)}`)
-      return
-    }
-
-    setMensaje('Proyecto creado exitosamente.')
-
-    setForm({
-      nombre: '',
-      descripcion: '',
-      plantilla: 'Basica',
-    })
-
-    setTimeout(() => navigate('/dashboard'), 900)
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans antialiased">
-      <header className="h-14 bg-white border-b border-slate-200/80 shadow-sm">
-        <div className="h-full max-w-4xl mx-auto px-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <img src={iteriaLogo} alt="Iteria" className="h-12 w-auto object-contain" />
+    <div className="space-y-10 pb-20 selection:bg-[#4CD96A]/30">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <Link to="/proyectos" className="inline-flex items-center gap-2 text-[#4CD96A] font-bold text-sm mb-4 hover:underline">
+            <ArrowLeft size={16} /> Volver a Proyectos
           </Link>
-          <Link
-            to="/dashboard"
-            className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100 transition-colors"
-          >
-            Inicio
-          </Link>
+          <h1 className="text-4xl font-black text-white tracking-tight">Nuevo Proyecto</h1>
+          <p className="mt-2 text-slate-400">Define los cimientos de tu próxima gran entrega.</p>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 lg:py-12">
-        <div className="mb-8">
-          <p className="text-slate-500 text-sm mb-2">Crear proyecto</p>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">Nuevo proyecto</h1>
-          <p className="text-slate-600 mt-2">Completa la información para registrar un nuevo proyecto en tu panel.</p>
-        </div>
-
-        <section className="bg-white border border-slate-200/80 rounded-[2rem] p-8 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-dark rounded-[3rem] p-8 lg:p-12 border border-white/5 shadow-2xl overflow-hidden relative"
+      >
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#4CD96A]/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+        
+        <form onSubmit={handleSubmit} className="relative z-10 space-y-10">
+          {/* TIPO DE PROYECTO */}
+          <div className="space-y-6">
             <div>
-              <p className="text-base font-semibold text-slate-900 mb-2">Tipo de proyecto</p>
-              <p className="text-sm text-slate-500 mb-4">Elige el estilo de tu proyecto según su naturaleza.</p>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  {
-                    key: 'Basica',
-                    title: 'Básica',
-                    subtitle: 'Proyectos académicos, tareas, tesis',
-                    icon: '🎓',
-                  },
-                  {
-                    key: 'Tecnica',
-                    title: 'Técnica',
-                    subtitle: 'Proyectos laborales, freelance, empresa',
-                    icon: '🧰',
-                  },
-                ].map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, plantilla: option.key }))}
-                    className={`rounded-[1.75rem] border p-6 text-left transition-all ${
-                      form.plantilla === option.key
-                        ? 'border-[#4CD96A] bg-[#4CD96A]/5 shadow-sm ring-2 ring-[#4CD96A]/20'
-                        : 'border-slate-200/90 bg-white hover:border-[#4CD96A]/50 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e7f9ef] text-xl">
-                        {option.icon}
-                      </span>
-                      <div>
-                        <p className="text-lg font-semibold text-slate-900">{option.title}</p>
-                        <p className="text-sm text-slate-500 mt-1">{option.subtitle}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <h2 className="text-xl font-bold text-white">1. Elige la Plantilla</h2>
+              <p className="text-sm text-slate-500 mt-1 italic">Cada plantilla tiene un enfoque diferente para tus tareas.</p>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 gap-4">
+              <TemplateOption 
+                active={form.plantilla === 'Basica'}
+                onClick={() => setForm(f => ({ ...f, plantilla: 'Basica' }))}
+                icon={GraduationCap}
+                title="Básica"
+                subtitle="Tareas académicas, tesis o proyectos simples."
+              />
+              <TemplateOption 
+                active={form.plantilla === 'Tecnica'}
+                onClick={() => setForm(f => ({ ...f, plantilla: 'Tecnica' }))}
+                icon={Briefcase}
+                title="Técnica"
+                subtitle="Proyectos de software, freelance o corporativos."
+              />
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-10">
+            {/* NOMBRE */}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-black text-slate-500 uppercase tracking-widest">
+                  <Type size={14} className="text-[#4CD96A]" /> Nombre del Proyecto
+                </label>
+                <input 
+                  required
+                  value={form.nombre}
+                  onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+                  placeholder="Ej: Rediseño App v2"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-[#4CD96A]/10 focus:border-[#4CD96A] transition-all font-semibold"
+                />
               </div>
-              <input type="hidden" name="plantilla" value={form.plantilla} />
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-black text-slate-500 uppercase tracking-widest">
+                  <AlignLeft size={14} className="text-[#4CD96A]" /> Descripción
+                </label>
+                <textarea 
+                  rows="5"
+                  value={form.descripcion}
+                  onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+                  placeholder="De qué trata este proyecto..."
+                  className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-[#4CD96A]/10 focus:border-[#4CD96A] transition-all font-semibold resize-none"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="nombre">Título del proyecto</label>
-              <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value }))}
-                placeholder="Mi nuevo proyecto"
-                className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
-              />
+            {/* INFO PANEL */}
+            <div className="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex flex-col justify-center">
+              <h3 className="font-bold text-white flex items-center gap-2 mb-4">
+                <CheckCircle2 size={18} className="text-[#4CD96A]" />
+                ¿Qué incluye esta plantilla?
+              </h3>
+              <ul className="space-y-3">
+                <FeatureItem text="Tablero Kanban pre-configurado" />
+                <FeatureItem text="Seguimiento de hitos clave" />
+                <FeatureItem text="Métricas de progreso automático" />
+                <FeatureItem text="Gestión de colaboradores" />
+              </ul>
+              
+              <div className="mt-8 p-4 rounded-2xl bg-[#4CD96A]/10 border border-[#4CD96A]/20 flex gap-4 items-start">
+                 <AlertCircle size={20} className="text-[#4CD96A] shrink-0" />
+                 <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                   Podrás editar todos estos detalles más tarde desde la configuración del proyecto.
+                 </p>
+              </div>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="descripcion">Descripción</label>
-              <textarea
-                id="descripcion"
-                name="descripcion"
-                value={form.descripcion}
-                onChange={(e) => setForm((prev) => ({ ...prev, descripcion: e.target.value }))}
-                placeholder="Describe tu proyecto..."
-                rows={4}
-                className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4CD96A]/30 focus:border-[#4CD96A]"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <button
-                type="submit"
-                disabled={guardando}
-                className="w-full rounded-2xl bg-[#4CD96A] px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-[#4CD96A]/25 transition hover:bg-[#3eb85c] disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {guardando ? 'Creando...' : 'Crear proyecto'}
-              </button>
-              {mensaje && (
-                <div className={`rounded-2xl p-4 text-sm font-medium ${
-                  mensaje.includes('Error')
-                    ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                }`}>
-                  {mensaje}
-                </div>
-              )}
-            </div>
-          </form>
-        </section>
-      </main>
+          <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center gap-6">
+            <button 
+              disabled={guardando}
+              className="w-full sm:w-auto px-10 py-4 bg-[#4CD96A] text-slate-950 font-black rounded-2xl shadow-2xl shadow-[#4CD96A]/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {guardando ? 'Creando...' : 'Crear Proyecto Ahora'}
+              <PlusCircle size={20} />
+            </button>
+            
+            {mensaje && (
+              <p className={`text-sm font-bold flex items-center gap-2 ${mensaje.includes('Error') ? 'text-rose-400' : 'text-[#4CD96A]'}`}>
+                {mensaje.includes('Error') ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+                {mensaje}
+              </p>
+            )}
+          </div>
+        </form>
+      </motion.section>
     </div>
+  )
+}
+
+function TemplateOption({ active, onClick, icon: Icon, title, subtitle }) {
+  return (
+    <button 
+      type="button" 
+      onClick={onClick}
+      className={`p-6 rounded-[2rem] border text-left transition-all group relative overflow-hidden ${
+        active 
+          ? 'bg-[#4CD96A] border-[#4CD96A] text-slate-950 shadow-xl shadow-[#4CD96A]/10' 
+          : 'bg-white/5 border-white/5 text-white hover:bg-white/10'
+      }`}
+    >
+      <div className={`w-12 h-12 rounded-2xl grid place-items-center mb-4 ${active ? 'bg-black/10' : 'bg-[#4CD96A]/10 text-[#4CD96A]'}`}>
+        <Icon size={24} />
+      </div>
+      <h3 className="font-bold text-lg">{title}</h3>
+      <p className={`text-sm mt-1 font-medium leading-tight ${active ? 'text-slate-800' : 'text-slate-500'}`}>{subtitle}</p>
+    </button>
+  )
+}
+
+function FeatureItem({ text }) {
+  return (
+    <li className="flex items-center gap-3 text-slate-400 text-sm font-semibold">
+      <div className="w-1.5 h-1.5 rounded-full bg-[#4CD96A]" />
+      {text}
+    </li>
   )
 }

@@ -19,10 +19,15 @@ function createUnavailableClient() {
 	)
 }
 
-if (!hasSupabaseConfig) {
-	console.error(missingConfigMessage)
+let supabaseClient
+
+try {
+	supabaseClient = hasSupabaseConfig
+		? createClient(supabaseUrl, supabaseAnonKey)
+		: createUnavailableClient()
+} catch (error) {
+	console.error('Error al inicializar el cliente de Supabase:', error.message)
+	supabaseClient = createUnavailableClient()
 }
 
-export const supabase = hasSupabaseConfig
-	? createClient(supabaseUrl, supabaseAnonKey)
-	: createUnavailableClient()
+export const supabase = supabaseClient
