@@ -1,0 +1,34 @@
+[Unit]
+Description=HashiCorp Vault
+Documentation=https://www.vaultproject.io/docs/
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty={{ vault_config_path }}/vault.hcl
+
+[Service]
+Type=notify
+User={{ vault_user }}
+Group={{ vault_group }}
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+Capabilities=CAP_IPC_LOCK+ep
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+LimitNOFILE={{ vault_ulimit_nofile }}
+LimitNPROC={{ vault_ulimit_nproc }}
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+ExecStart={{ vault_bin_path }} server -config={{ vault_config_path }}/vault.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vault
+
+[Install]
+WantedBy=multi-user.target

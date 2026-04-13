@@ -1,0 +1,287 @@
+---
+# ansible/playbooks/deploy_vault.yml
+# Playbook principal para desplegar y configurar HashiCorp Vault
+
+- name: "Pre-checks: Validar inventario"
+  hosts: vault_servers
+  gather_facts: yes
+  pre_tasks:
+    - name: "Verificar que los hosts de Vault son accesibles"
+      ping:
+      tags:
+        - always
+
+    - name: "Mostrar información del sistema"
+      debug:
+        msg: |
+          Sistema: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Kernel: {{ ansible_kernel }}
+          Python: {{ ansible_python_version }}
+      tags:
+        - always
+
+  roles:
+    - common
+
+- name: "Desplegar HashiCorp Vault"
+  hosts: vault_servers
+  become: yes
+  vars_files:
+    - "../group_vars/vault_servers.yml"
+  pre_tasks:
+    - name: "Incluir variables específicas del host (si existen)"
+      include_vars:
+        file: "{{ item }}"
+        name: host_vars_overrides
+      loop:
+        - "../host_vars/{{ inventory_hostname }}.yml"
+      ignore_errors: yes
+      tags:
+        - always
+
+  roles:
+    - role: vault
+      tags:
+        - vault_install
+
+  post_tasks:
+    - name: "Mostrar estados finales importantes"
+      debug:
+        msg: |
+          ✅ HashiCorp Vault {{ vault_version }} instalado exitosamente
+          
+          Detalles de instalación:
+          - Binario: {{ vault_bin_path }}
+          - Configuración: {{ vault_config_path }}/vault.hcl
+          - Datos: {{ vault_data_path }}
+          - Puerto API: 8200
+          - Puerto Cluster: 8201
+          
+          Siguientes pasos (MANUAL):
+          1. SSH al servidor: ssh -i ~/.ssh/iteria-key.pem ubuntu@{{ ansible_host }}
+          2. Inicializar: vault operator init -key-shares=5 -key-threshold=3 -format=json > /opt/vault/keys.json
+          3. Guardar keys.json en lugar seguro
+          4. Unseal: vault operator unseal
+          5. Continuar con el playbook configure_vault.yml
+      tags:
+        - always
+
+---
+# ============== PLAYBOOK SEPARADO ==============
+# Ejecutar SOLO después de inicializar y unseal Vault manualmente
+
+- name: "Configurar AppRole, Secrets Engine y Políticas"
+  hosts: vault_servers
+  become: yes
+  vars_files:
+    - "../group_vars/vault_servers.yml"
+  
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_SKIP_VERIFY: "true"  # Solo para desarrollo
+  
+  vars:
+    vault_root_token: "{{ vault_root_token | default('') }}"
+
+  pre_tasks:
+    - name: "Validar que Vault esté inicializado y unsealed"
+      uri:
+        url: "{{ vault_api_addr }}/v1/sys/health"
+        method: GET
+        status_code: 200,429,473,501,503
+        validate_certs: no
+      register: vault_health
+      tags:
+        - configure
+
+    - name: "Verificar que Vault esté unsealed"
+      assert:
+        that:
+          - vault_health.json.sealed == false
+        fail_msg: "Vault está selado. Debes ejecutar 'vault operator unseal' primero"
+      tags:
+        - configure
+
+  tasks:
+    # ============== Secrets Engine KV v2 ==============
+    - name: "Habilitar Secrets Engine KV v2"
+      command: "{{ vault_bin_path }} secrets enable -version=2 -path={{ vault_secrets_path }} kv"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      register: kv_enable
+      changed_when: "'already in use' not in kv_enable.stderr"
+      failed_when: "kv_enable.rc != 0 and 'already in use' not in kv_enable.stderr"
+      tags:
+        - configure
+        - secrets_engine
+
+    # ============== Crear políticas ==============
+    - name: "Copiar archivo de política CICD"
+      copy:
+        content: |
+          # Política para CI/CD - Acceso de lectura solamente
+          path "iteria/data/cicd/*" {
+            capabilities = ["read", "list"]
+          }
+          path "iteria/metadata/cicd/*" {
+            capabilities = ["read", "list"]
+          }
+          
+          # Permitir renovación de token
+          path "auth/token/renew-self" {
+            capabilities = ["update"]
+          }
+          
+          # Permitir lookup token
+          path "auth/token/lookup-self" {
+            capabilities = ["read"]
+          }
+        dest: /tmp/cicd-policy.hcl
+      tags:
+        - configure
+        - policies
+
+    - name: "Copiar archivo de política Developers"
+      copy:
+        content: |
+          # Política para Developers - Acceso lectura/escritura limitado
+          path "iteria/data/dev/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+          path "iteria/metadata/dev/*" {
+            capabilities = ["read", "list"]
+          }
+          
+          path "auth/token/renew-self" {
+            capabilities = ["update"]
+          }
+          
+          path "auth/token/lookup-self" {
+            capabilities = ["read"]
+          }
+        dest: /tmp/dev-policy.hcl
+      tags:
+        - configure
+        - policies
+
+    - name: "Copiar archivo de política Admins"
+      copy:
+        content: |
+          # Política para Admins - Acceso completo
+          path "iteria/*" {
+            capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+          }
+          
+          path "auth/token/*" {
+            capabilities = ["create", "update", "renew", "read", "list", "delete"]
+          }
+          
+          path "sys/policies/*" {
+            capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+          }
+        dest: /tmp/admin-policy.hcl
+      tags:
+        - configure
+        - policies
+
+    - name: "Crear políticas en Vault"
+      command: "{{ vault_bin_path }} policy write {{ item }} /tmp/{{ item }}-policy.hcl"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      loop:
+        - cicd
+        - dev
+        - admin
+      tags:
+        - configure
+        - policies
+
+    # ============== AppRole método de autenticación ==============
+    - name: "Habilitar AppRole auth method"
+      command: "{{ vault_bin_path }} auth enable approle"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      register: approle_enable
+      changed_when: "'already enabled' not in approle_enable.stderr"
+      failed_when: "approle_enable.rc != 0 and 'already enabled' not in approle_enable.stderr"
+      tags:
+        - configure
+        - approle
+
+    - name: "Crear AppRole para CI/CD"
+      command: "{{ vault_bin_path }} write auth/approle/role/{{ vault_approle_role_name }} token_ttl=1h token_max_ttl=4h policies=cicd"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      tags:
+        - configure
+        - approle
+
+    - name: "Generar RoleID"
+      command: "{{ vault_bin_path }} read auth/approle/role/{{ vault_approle_role_name }}/role-id -format=json"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      register: role_id_output
+      changed_when: false
+      tags:
+        - configure
+        - approle
+
+    - name: "Generar SecretID"
+      command: "{{ vault_bin_path }} write -f auth/approle/role/{{ vault_approle_role_name }}/secret-id -format=json"
+      environment:
+        VAULT_ADDR: "{{ vault_api_addr }}"
+        VAULT_TOKEN: "{{ vault_root_token }}"
+      register: secret_id_output
+      tags:
+        - configure
+        - approle
+
+    - name: "Guardar credenciales de AppRole (para CI/CD)"
+      copy:
+        content: |
+          # ⚠️ SECRETO - Guardar en lugar seguro
+          # Credentials para {{ vault_approle_role_name }} AppRole
+          # Generado: {{ ansible_date_time.iso8601 }}
+          
+          ROLE_ID="{{ role_id_output.stdout | from_json | json_query('data.role_id') }}"
+          SECRET_ID="{{ secret_id_output.stdout | from_json | json_query('data.secret_id') }}"
+          VAULT_ADDR="{{ vault_api_addr }}"
+          
+          # Ejemplo de uso en CI/CD:
+          # VAULT_TOKEN=$(curl -s -X POST "${VAULT_ADDR}/v1/auth/approle/login" \
+          #   -d "{\"role_id\":\"${ROLE_ID}\",\"secret_id\":\"${SECRET_ID}\"}" \
+          #   | jq -r '.auth.client_token')
+        dest: "/opt/vault/approle_credentials.env"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        mode: "0600"
+      tags:
+        - configure
+        - approle
+        - sensitive
+
+    - name: "Mostrar instrucciones finales"
+      debug:
+        msg: |
+          ✅ AppRole configurado exitosamente
+          
+          Credenciales guardadas en: /opt/vault/approle_credentials.env
+          (SOLO en el servidor - copiar a CI/CD system como secreto)
+          
+          Secretos engine: {{ vault_secrets_path }}
+          Políticas: cicd, dev, admin
+          
+          Ejemplo: Guardar un secreto en Vault
+          vault kv put iteria/cicd/database \
+            username=dbuser \
+            password=dbpass
+      tags:
+        - always
+
+  tags:
+    - configure

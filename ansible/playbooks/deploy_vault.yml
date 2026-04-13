@@ -1,0 +1,17 @@
+---
+# Playbook para desplegar Vault
+
+- name: "Desplegar HashiCorp Vault"
+  hosts: vault_servers
+  become: yes
+  vars_files:
+    - "../group_vars/vault_servers.yml"
+  
+  roles:
+    - common
+    - vault
+  
+  post_tasks:
+    - name: "Vault instalado"
+      debug:
+        msg: "Vault {{ vault_version }} corriendo en puerto 8200"

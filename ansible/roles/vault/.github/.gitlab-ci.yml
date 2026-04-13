@@ -1,0 +1,39 @@
+stages:
+  - deploy
+  - configure
+
+# Función helper para autenticarse en Vault
+before_script:
+  - |
+    get_vault_token() {
+      curl -s -X POST "${VAULT_ADDR}/v1/auth/approle/login" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"role_id\": \"${VAULT_ROLE_ID}\",
+          \"secret_id\": \"${VAULT_SECRET_ID}\"
+        }" | jq -r '.auth.client_token'
+    }
+  
+  - |
+    get_vault_secret() {
+      local secret_path=$1
+      local field=$2
+      local token=$(get_vault_token)
+      curl -s -X GET "${VAULT_ADDR}/v1/iteria/data/cicd/${secret_path}" \
+        -H "X-Vault-Token: ${token}" | jq -r ".data.data.${field}"
+    }
+
+# Job de ejemplo
+deploy_to_production:
+  stage: deploy
+  image: ubuntu:22.04
+  script:
+    - apt-get update && apt-get install -y curl jq
+    - export DB_PASSWORD=$(get_vault_secret "database" "password")
+    - export DB_USER=$(get_vault_secret "database" "username")
+    - echo "Deploying with credentials from Vault..."
+  only:
+    - main
+  variables:
+    VAULT_ADDR: "https://vault.iteria.com:8200"
+    # VAULT_ROLE_ID y VAULT_SECRET_ID deben estar en GitLab CI/CD variables

@@ -1,0 +1,195 @@
+---
+# tasks/main.yml - Despliegue e instalación de HashiCorp Vault
+
+# ============== Prerequisitos ==============
+- name: "Actualizar apt cache"
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - vault
+    - system
+
+- name: "Instalar paquetes requeridos"
+  apt:
+    name:
+      - curl
+      - wget
+      - unzip
+      - jq
+      - openssl
+    state: present
+  tags:
+    - vault
+    - system
+
+# ============== Usuario y Grupo ==============
+- name: "Crear grupo de Vault"
+  group:
+    name: "{{ vault_group }}"
+    state: present
+  tags:
+    - vault
+    - system
+
+- name: "Crear usuario de Vault"
+  user:
+    name: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    shell: /bin/false
+    home: "{{ vault_user_home }}"
+    createhome: yes
+    state: present
+  tags:
+    - vault
+    - system
+
+# ============== Directorios ==============
+- name: "Crear directorios requeridos de Vault"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "{{ '0700' if 'data' in item else '0755' }}"
+  loop:
+    - "{{ vault_config_path }}"
+    - "{{ vault_data_path }}"
+    - "{{ vault_log_path }}"
+    - "{{ vault_user_home }}"
+    - /etc/vault.d/tls
+  tags:
+    - vault
+    - filesystem
+
+# ============== Descarga e Instalación ==============
+- name: "Descargar HashiCorp Vault"
+  get_url:
+    url: "{{ vault_package_url }}"
+    dest: "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+    timeout: 30
+  register: vault_download
+  until: vault_download is succeeded
+  retries: 3
+  delay: 2
+  tags:
+    - vault
+    - download
+
+- name: "Descomprimir Vault"
+  unarchive:
+    src: "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+    dest: "/tmp"
+    remote_src: yes
+    creates: "/tmp/vault"
+  tags:
+    - vault
+    - download
+
+- name: "Instalar binario de Vault"
+  copy:
+    src: "/tmp/vault"
+    dest: "{{ vault_bin_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: yes
+  notify: "restart vault"
+  tags:
+    - vault
+    - download
+
+- name: "Habilitar mmap_exec para Vault"
+  command: "setcap cap_ipc_lock=+ep {{ vault_bin_path }}"
+  changed_when: false
+  tags:
+    - vault
+    - system
+
+- name: "Limpiar archivos temporales"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/vault"
+    - "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+  tags:
+    - vault
+    - system
+
+# ============== Configuración ==============
+- name: "Generar archivo de configuración vault.hcl"
+  template:
+    src: vault.hcl.j2
+    dest: "{{ vault_config_path }}/vault.hcl"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "{{ vault_config_mode }}"
+    backup: yes
+  notify: "restart vault"
+  tags:
+    - vault
+    - config
+
+# ============== Systemd Service ==============
+- name: "Crear archivo de servicio systemd"
+  template:
+    src: vault.service.j2
+    dest: /etc/systemd/system/vault.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "reload systemd"
+    - "restart vault"
+  tags:
+    - vault
+    - systemd
+
+- name: "Reload systemd daemon"
+  systemd:
+    daemon_reload: yes
+  tags:
+    - vault
+    - systemd
+
+- name: "Habilitar servicio Vault"
+  systemd:
+    name: vault
+    enabled: yes
+    state: started
+  tags:
+    - vault
+    - systemd
+
+# ============== Verificación de Conectividad ==============
+- name: "Esperar a que Vault esté disponible"
+  wait_for:
+    host: "127.0.0.1"
+    port: 8200
+    timeout: 15
+    state: started
+  tags:
+    - vault
+    - verify
+
+- name: "Verificar estado de Vault"
+  uri:
+    url: "http://127.0.0.1:8200/v1/sys/health"
+    method: GET
+    validate_certs: no
+    status_code: [200, 501]  # 501 es esperado si Vault no está inicializado
+  register: vault_status
+  retries: 5
+  delay: 2
+  until: vault_status is succeeded
+  tags:
+    - vault
+    - verify
+
+- name: "Mostrar estado de Vault"
+  debug:
+    msg: "Vault status: {{ vault_status.status }}"
+  tags:
+    - vault
+    - verify

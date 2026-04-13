@@ -1,0 +1,40 @@
+---
+# Valores por defecto para el rol vault
+# Pueden ser sobrescrito por group_vars o host_vars
+
+# Versión de Vault (puede ser sobrescrito por group_vars)
+vault_version: "1.15.4"
+
+# Usuario y grupo de Vault
+vault_user: "vault"
+vault_group: "vault"
+vault_user_home: "/opt/vault"
+
+# Rutas
+vault_bin_path: "/usr/local/bin/vault"
+vault_config_path: "/etc/vault.d"
+vault_data_path: "/opt/vault/data"
+vault_log_path: "/var/log/vault"
+vault_pid_path: "/var/run/vault"
+
+# Permisos
+vault_config_mode: "0640"
+vault_data_mode: "0700"
+
+# Limites
+vault_ulimit_nofile: 65536
+vault_ulimit_nproc: 65536
+
+# Descargas
+vault_download_url: "https://releases.hashicorp.com/vault"
+vault_enable_checksum_verification: true
+
+# Mattermost/URL de notificación (opcional)
+vault_notification_url: ""
+
+# Logs
+vault_log_level: "info"
+
+# Máximo intentos de reintentos para conectividad
+vault_connectivity_max_retries: 10
+vault_connectivity_retry_delay: 2

@@ -1,0 +1,57 @@
+# Vault Configuration File
+# Generado por Ansible - NO EDITAR MANUALMENTE
+
+storage "{{ vault_storage_backend }}" {
+  path = "{{ vault_storage_path }}"
+  {% if vault_storage_backend == 'raft' %}
+  node_id = "{{ vault_storage_node_id }}"
+  retry_join {
+    leader_api_addr = "http://vault1.internal:8200"
+  }
+  {% endif %}
+}
+
+listener "tcp" {
+  address         = "{{ vault_bind_addr }}:8200"
+  tls_disable     = {{ 'true' if vault_tls_disable else 'false' }}
+  {% if not vault_tls_disable %}
+  tls_cert_file   = "{{ vault_tls_cert_file }}"
+  tls_key_file    = "{{ vault_tls_key_file }}"
+  tls_min_version = "tls12"
+  {% endif %}
+}
+
+# Para cluster de Vault (si usas Raft)
+listener "tcp" {
+  address         = "{{ vault_cluster_addr }}:8201"
+  tls_disable     = {{ 'true' if vault_tls_disable else 'false' }}
+  {% if not vault_tls_disable %}
+  tls_cert_file   = "{{ vault_tls_cert_file }}"
+  tls_key_file    = "{{ vault_tls_key_file }}"
+  tls_min_version = "tls12"
+  {% endif %}
+}
+
+# API address (debe ser accesible desde CLI y clientes)
+api_addr          = "{{ vault_api_addr }}"
+cluster_addr      = "{{ vault_cluster_listen_addr }}"
+
+# UI
+ui = {{ vault_ui_enabled | lower }}
+
+# Logs
+log_level = "{{ vault_log_level }}"
+
+# Desactivar mlock si es necesario (para desarrollo)
+disable_mlock = false
+
+# Plugin directory
+plugin_directory = "/usr/local/lib/vault/plugins"
+
+# Telemetría (opcional - comentado por defecto)
+{% if vault_telemetry_enabled | default(false) %}
+telemetry {
+  prometheus_retention_time = "30s"
+  disable_hostname = false
+}
+{% endif %}

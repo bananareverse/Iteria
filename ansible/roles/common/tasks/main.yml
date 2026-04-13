@@ -1,0 +1,20 @@
+---
+# Tareas mínimas de sistema
+
+- name: "Actualizar apt cache"
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - system
+
+- name: "Instalar paquetes base"
+  apt:
+    name:
+      - curl
+      - wget
+      - unzip
+      - jq
+    state: present
+  tags:
+    - system

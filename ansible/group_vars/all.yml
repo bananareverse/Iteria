@@ -1,0 +1,29 @@
+---
+# Variables globales para todos los hosts
+
+# Configuración de sistema
+system_timezone: "America/Mexico_City"
+system_ntp_servers:
+  - 0.amazon.pool.ntp.org
+  - 1.amazon.pool.ntp.org
+
+# Actualización de paquetes
+system_packages_update: true
+system_packages_upgrade: true
+
+# Usuario de deployer
+deployer_user: "ubuntu"
+deployer_group: "ubuntu"
+
+# Configuración de seguridad básica
+ufw_enabled: true
+ufw_default_incoming: "deny"
+ufw_default_outgoing: "allow"
+ufw_default_routed: "deny"
+
+# Log rotation
+logrotate_maxage: 90
+
+# Monitoreo (si aplica)
+monitoring_enabled: true
+remote_logging_enabled: false

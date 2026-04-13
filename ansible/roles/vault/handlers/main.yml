@@ -1,0 +1,19 @@
+---
+# Handlers para el role vault
+
+- name: restart vault
+  systemd:
+    name: vault
+    daemon_reload: no
+    state: restarted
+  listen: "restart vault"
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  listen: "reload systemd"
+
+- name: validate vault config
+  command: "{{ vault_bin_path }} config validate -config={{ vault_config_path }}/vault.hcl"
+  listen: "validate vault config"
+  changed_when: false

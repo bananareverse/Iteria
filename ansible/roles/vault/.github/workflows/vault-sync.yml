@@ -1,0 +1,32 @@
+name: Sync Secrets from Vault
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Ejecutar diariamente a las 2 AM
+  workflow_dispatch:    # Trigger manual
+
+jobs:
+  sync-secrets:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Authenticate to Vault
+        uses: hashicorp/vault-action@v2
+        id: vault
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          role_id: ${{ secrets.VAULT_ROLE_ID }}
+          secret_id: ${{ secrets.VAULT_SECRET_ID }}
+          method: approle
+          path: approle
+          jwtPayloadFormat: 'wrapped'
+          caCertificate: ${{ secrets.VAULT_CA_CERT }}
+
+      - name: Use Vault secrets
+        run: |
+          echo "Database credentials retrieved from Vault"
+          # Los secretos están disponibles como env vars
+          # por ejemplo: ${{ steps.vault.outputs.database }}
+        env:
+          DB_USER: ${{ steps.vault.outputs['iteria/cicd/database'].username }}
+          DB_PASS: ${{ steps.vault.outputs['iteria/cicd/database'].password }}

@@ -11,7 +11,7 @@ availability_zones = ["us-east-1a", "us-east-1b"]
 # EC2
 ec2_instance_type = "t3.micro"
 ec2_ami_id        = "ami-0c7217cdde317cfec"
-ec2_key_name      = "iteria-key" # Basado en la documentación del README
+ec2_key_name = "iteria-key-new" # Basado en la documentación del README
 allowed_ssh_cidr  = "0.0.0.0/0"
 
 # RDS

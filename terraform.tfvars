@@ -11,7 +11,7 @@ availability_zones = ["us-east-1a", "us-east-1b"]
 # EC2
 ec2_instance_type = "t3.micro"
 ec2_ami_id        = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS us-east-1
-ec2_key_name      = "iteria-key"            # Nombre de tu key pair en AWS
+ec2_key_name = "iteria-key-new"            # Nombre de tu key pair en AWS
 allowed_ssh_cidr  = "0.0.0.0/0"             # Cambia por tu IP: "xx.xx.xx.xx/32"
 
 # RDS

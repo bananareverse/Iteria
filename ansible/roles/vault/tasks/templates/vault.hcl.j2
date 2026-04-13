@@ -1,0 +1,12 @@
+storage "file" {
+  path = "/opt/vault/data"
+}
+
+listener "tcp" {
+  address     = "{{ private_ip }}:8200"
+  tls_disable = 1
+}
+
+api_addr = "http://{{ private_ip }}:8200"
+cluster_addr = "https://{{ private_ip }}:8201"
+ui = true

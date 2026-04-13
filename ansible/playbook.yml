@@ -1,0 +1,26 @@
+---
+- name: Desplegar aplicación Iteria
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Instalar Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Instalar Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Clonar repositorio
+      git:
+        repo: https://github.com/bananareverse/Iteria.git
+        dest: /home/ubuntu/iteria
+        version: main
+
+    - name: Ejecutar Docker Compose
+      command: docker-compose up -d
+      args:
+        chdir: /home/ubuntu/iteria
